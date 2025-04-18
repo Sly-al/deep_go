@@ -9,32 +9,103 @@ import (
 
 // go test -v homework_test.go
 
+type Node struct {
+	val         int
+	left, right *Node
+}
+
+func insertBST(root *Node, val int) *Node {
+	if root == nil {
+		return &Node{
+			val: val,
+		}
+	}
+	if root.val > val {
+		root.left = insertBST(root.left, val)
+	} else {
+		root.right = insertBST(root.right, val)
+	}
+	return root
+}
+
+func deleteBST(root *Node, val int) *Node {
+	if root == nil {
+		return root
+	}
+	if val < root.val {
+		root.left = deleteBST(root.left, val)
+	} else if val > root.val {
+		root.right = deleteBST(root.right, val)
+	} else if root.left != nil && root.right != nil {
+		root.val = minimumBST(root.right)
+		root.right = deleteBST(root.right, root.val)
+	} else {
+		if root.left != nil {
+			root = root.left
+		} else if root.right != nil {
+			root = root.right
+		} else {
+			root = nil
+		}
+	}
+	return root
+}
+
+func minimumBST(root *Node) int {
+	if root.left == nil {
+		return root.val
+	}
+	return minimumBST(root.left)
+}
+
 type OrderedMap struct {
-	// need to implement
+	dict map[int]int
+	root *Node
 }
 
 func NewOrderedMap() OrderedMap {
-	return OrderedMap{} // need to implement
+	return OrderedMap{
+		dict: make(map[int]int),
+	}
 }
 
 func (m *OrderedMap) Insert(key, value int) {
-	// need to implement
+	if _, ok := m.dict[key]; ok {
+		return
+	}
+	m.dict[key] = value
+
+	m.root = insertBST(m.root, key)
 }
 
 func (m *OrderedMap) Erase(key int) {
-	// need to implement
+	if _, ok := m.dict[key]; !ok {
+		return
+	}
+
+	delete(m.dict, key)
+	m.root = deleteBST(m.root, key)
 }
 
 func (m *OrderedMap) Contains(key int) bool {
-	return false // need to implement
+	_, ok := m.dict[key]
+	return ok
 }
 
 func (m *OrderedMap) Size() int {
-	return 0 // need to implement
+	return len(m.dict)
 }
 
 func (m *OrderedMap) ForEach(action func(int, int)) {
-	// need to implement
+	m.forEach(m.root, action)
+}
+
+func (m *OrderedMap) forEach(root *Node, action func(int, int)) {
+	if root != nil {
+		m.forEach(root.left, action)
+		action(root.val, m.dict[root.val])
+		m.forEach(root.right, action)
+	}
 }
 
 func TestCircularQueue(t *testing.T) {
